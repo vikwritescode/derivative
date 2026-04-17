@@ -32,6 +32,7 @@ def get_debate(uid: str, debate_id: int, db: sqlite3.Connection):
                 ORDER BY d.date DESC, d.id;
                     """, (uid, debate_id))
         i = cur.fetchone()
+        cts = json.loads(i[8]) if i[8] else []
         return {
             "id": i[0],
             "uid": i[1],
@@ -41,7 +42,7 @@ def get_debate(uid: str, debate_id: int, db: sqlite3.Connection):
             "speaks": i[5],
             "infoslide": i[6],
             "motion": i[7],
-            "categories": json.loads(i[8]),
+            "categories": [c for c in cts if c is not None],
             "tournament": i[9],
             "legacy_date": i[10],
             "tournament_id": i[11],
