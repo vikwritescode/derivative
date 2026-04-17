@@ -2,21 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from enum import Enum
 
-class DebateCreate(BaseModel):
-    date: str
-    position: Literal['OG', 'OO', 'CG', 'CO']
-    points: int = Field(ge=0, le=3)
-    speaks: int = Field(ge=0, le=100)
-    reply: int = Field(default=0, ge=0, le=50)
-    motion: str
-    infoslide: str
-    tournament: int | None = None 
-    categories: CategoryList | None = None
-    order: int = Field(default=0, ge=0, le=2)
-    has_reply: bool = False
-    
-    
-
 class Category(str, Enum):
     africa = "Africa"
     animal_rights = "Animal Rights"
@@ -79,6 +64,18 @@ class Category(str, Enum):
     terrorism = "Terrorism"
     trade = "Trade"
         
-    
 class CategoryList(BaseModel):
     categories: list[Category]
+
+class DebateCreate(BaseModel):
+    date: str
+    position: Literal['OG', 'OO', 'CG', 'CO']
+    points: int = Field(ge=0, le=3)
+    speaks: int = Field(ge=0, le=100)
+    reply: int = Field(default=0, ge=0, le=50)
+    motion: str
+    infoslide: str
+    tournament: int | None = None 
+    categories: CategoryList | None = None
+    order: int = Field(default=0, ge=0, le=2)
+    has_reply: bool = False
