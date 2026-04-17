@@ -42,7 +42,46 @@ def api_post(debate: DebateCreate, user: dict = Depends(get_current_user), db: s
     except RuntimeError as e:
         db.rollback()
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, e)
+
+@router.get("/get/{debate_id}")
+def api_get_debate(debate_id: int, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Get debate index {debate_id} if it exists and is owned by user
     
+    :param debate_id: The debate to get
+    :type debate_id: int
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database object
+    :type db: sqlite3.Connection, request: Request = None
+    """
+    try:
+        return service.get_debate(user["uid"], debate_id, db)
+    except RuntimeError as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User Record Not Found")
+
+@router.post("/edit")
+def api_post(debate_id: int, debate: DebateCreate, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Edit details of debate in debates table.
+    
+    :param debate_id: id of the debate to edit
+    :type debate_id: int
+    :param debate: Data for the table
+    :type debate: DebateCreate
+    :param user: the user object
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        attempt = service.edit_debate(debate_id, debate, user["uid"], db)
+        return {"id": attempt, "message": "Successfully edited record"}
+    except RuntimeError as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, e)  
   
 @router.delete("/delete/{debate_id}")
 def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):

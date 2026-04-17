@@ -12,7 +12,7 @@ from models import *
 import joblib
 from contextlib import asynccontextmanager
 from app import get_db, create_tables, init_firebase, get_current_user
-from app.routes import usertournaments, wsdc, australs, tab, debates
+from app.routes import usertournaments, wsdc, australs, tab, debates, category
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,6 +46,7 @@ app.include_router(wsdc.router)
 app.include_router(australs.router)
 app.include_router(tab.router)
 app.include_router(debates.router)
+app.include_router(category.router)
 
 @app.get("/api")
 def root(user: dict = Depends(get_current_user)):

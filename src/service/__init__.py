@@ -11,3 +11,7 @@ from .delete_tournament import delete_tournament
 from .import_wsdc_records import import_wsdc_records
 from .import_australs_records import import_australs_records
 from .refresh_tournament import refresh_tournament
+from .get_cats_for_debate import get_cats_for_debate
+from .set_cats_for_debate import set_cats_for_debate
+from .get_debate import get_debate
+from .edit_debate import edit_debate
