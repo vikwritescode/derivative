@@ -14,7 +14,7 @@ class EmailException(Exception):
 security = HTTPBearer()
 
 @lru_cache()
-def get_email_whitelist() -> set:
+def get_whitelist() -> set:
     """Reads the whitelist file. The @lru_cache ensures this only runs once."""
     # Assuming the app is run from the project root. 
     # Adjust path if necessary (e.g., os.path.join(os.path.dirname(__file__), "..."))
@@ -24,12 +24,12 @@ def get_email_whitelist() -> set:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    email_whitelist: set = Depends(get_email_whitelist)) -> dict:
+    whitelist: set = Depends(get_whitelist)) -> dict:
     try:
         id_token = credentials.credentials
         decoded_token = auth.verify_id_token(id_token)
         
-        if (decoded_token["email"] not in email_whitelist) and (not decoded_token["email_verified"]):
+        if (decoded_token["uid"] not in whitelist) and (not decoded_token["email_verified"]):
             raise EmailException
     
         return decoded_token
