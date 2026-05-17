@@ -15,9 +15,6 @@ security = HTTPBearer()
 
 @lru_cache()
 def get_whitelist() -> set:
-    """Reads the whitelist file. The @lru_cache ensures this only runs once."""
-    # Assuming the app is run from the project root. 
-    # Adjust path if necessary (e.g., os.path.join(os.path.dirname(__file__), "..."))
     with open("../whitelist.json", "r") as f:
         return set(json.load(f))
 

@@ -14,6 +14,10 @@ def get_speaker(url :str, slug: str, name: str) -> list:
     :return: list of speakers urls which partially match
     :rtype: list
     """
+    
+    def sanitise_name(name: str) -> str:
+        return name.lower().strip()
+    
     try:
         link = correct_url(url)
         print(url)
@@ -29,5 +33,5 @@ def get_speaker(url :str, slug: str, name: str) -> list:
     relevant = [{"name": entry["name"], "team": entry["team"], "url": entry["url"]} 
                 for entry in data 
                 if not entry["anonymous"] 
-                and name.lower() in entry["name"].lower()]
+                and sanitise_name(name) in entry["name"].lower()]
     return relevant
