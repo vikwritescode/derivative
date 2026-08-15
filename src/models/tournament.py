@@ -1,9 +1,15 @@
+from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Literal
 
 class SlugRef(BaseModel):
     name: str
     slug: str
+
+class TournamentFormat(str, Enum):
+    BP = "BP"
+    WSDC = "WSDC"
+    AUS = "AUS"
 
 class SpeakerRef(BaseModel):
     name: str
@@ -23,3 +29,4 @@ class TournamentCreate(BaseModel):
     speaker_rank: int
     rooms: int
     partner: str
+    t_format: TournamentFormat

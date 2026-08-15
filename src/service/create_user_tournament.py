@@ -13,8 +13,8 @@ def create_user_tournament(tournament: TournamentCreate, uid: str, db: sqlite3.C
     """
     try:
         cur = db.cursor()
-        cur.execute("INSERT INTO tournaments (user_id, date, name, speaker_standing, team_standing, rooms, partner) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (uid, tournament.date, tournament.name, tournament.speaker_rank, tournament.team_rank, tournament.rooms, tournament.partner))
+        cur.execute("INSERT INTO tournaments (user_id, date, name, speaker_standing, team_standing, rooms, partner, format) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (uid, tournament.date, tournament.name, tournament.speaker_rank, tournament.team_rank, tournament.rooms, tournament.partner, tournament.t_format))
         db.commit()
         return cur.lastrowid
     except sqlite3.DatabaseError as e:
