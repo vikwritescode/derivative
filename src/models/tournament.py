@@ -19,3 +19,7 @@ class TournamentImportModel(BaseModel):
 class TournamentCreate(BaseModel):
     name: str
     date: str
+    team_rank: int
+    speaker_rank: int
+    rooms: int
+    partner: str
