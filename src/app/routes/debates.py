@@ -25,7 +25,7 @@ def api_get(user: dict = Depends(get_current_user), db: sqlite3.Connection = Dep
                             detail=str(e))
 
 @router.post("/add")
-def api_post(debate: DebateCreate, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+def api_post(debate: DebateCreate, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db), request: Request = None):
     """
     Add another debate to the database.
     
@@ -37,7 +37,7 @@ def api_post(debate: DebateCreate, user: dict = Depends(get_current_user), db: s
     :type db: sqlite3.Connection
     """
     try:
-        attempt = service.insert_debate(debate, user["uid"], db)
+        attempt = service.insert_debate(debate, user["uid"], db, request)
         return {"id": attempt, "message": "Successfully inserted record"}
     except RuntimeError as e:
         db.rollback()
