@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: .
+      target: serve
+    image: derivative-backend:latest
+    container_name: derivative-backend
+    restart: unless-stopped
+    # Bind to 127.0.0.1 so external internet traffic cannot bypass Nginx
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - SERVICE_ACCT_KEY=/run/secrets
+      - MODEL_ARTIFACT_DIR=/artifacts
+      - DB_PATH=/data/debates.db
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - derivative-data:/data
+      - ${HOME}/dv-secrets:/run/secrets:ro,Z
+      - ${HOME}/dv-artifacts:/artifacts:Z
+    command: ["python", "-m", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/docs\").getcode()' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+volumes:
+  derivative-data:
+    name: derivative-data
