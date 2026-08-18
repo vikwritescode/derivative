@@ -88,6 +88,7 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         print("raising...")
         raise
     except Exception as e:
+        print(e)
         raise RuntimeError("error fetching participant data")
     try:
         # cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)

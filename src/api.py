@@ -11,8 +11,21 @@ import service
 from models import *
 import joblib
 from contextlib import asynccontextmanager
+from pathlib import Path
 from app import get_db, create_tables, init_firebase, get_current_user
 from app.routes import usertournaments, wsdc, australs, tab, debates, category
+
+MODEL_ARTIFACT_DIR = Path(os.getenv("MODEL_ARTIFACT_DIR", ".")).resolve()
+
+
+def load_model_artifact(filename: str):
+    artifact_path = MODEL_ARTIFACT_DIR / filename
+    if not artifact_path.exists():
+        raise FileNotFoundError(
+            f"Missing model artifact: {artifact_path}. "
+            "Train the model first or mount a directory containing the pickle files."
+        )
+    return joblib.load(artifact_path)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,9 +35,9 @@ async def lifespan(app: FastAPI):
     
     # load model
     global model, mlb, clf
-    model = joblib.load("sentence_transformer.pkl")
-    mlb = joblib.load("multilabel_binarizer.pkl")
-    clf = joblib.load("classifier.pkl")
+    model = load_model_artifact("sentence_transformer.pkl")
+    mlb = load_model_artifact("multilabel_binarizer.pkl")
+    clf = load_model_artifact("classifier.pkl")
 
     app.state.model = model
     app.state.mlb = mlb

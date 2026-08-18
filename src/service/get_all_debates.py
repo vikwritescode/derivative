@@ -49,6 +49,7 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
         } for i in x]
         return r
     except sqlite3.Error as e:
+        print(e)
         raise RuntimeError("Database Issue")
     
     
