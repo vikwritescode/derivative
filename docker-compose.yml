@@ -16,7 +16,11 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - derivative-data:/data
+      ## TODO: Correct the directories to the left of the colon depending on your setup.
+      # path to your secrets folder on the left
       - ${HOME}/dv-secrets:/run/secrets:ro,Z
+      # path to the artifacts folder you made (either empty or has .pkl files depending on whether
+      # you have trained the model yet) on the left
       - ${HOME}/dv-artifacts:/artifacts:Z
     command: ["python", "-m", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
     healthcheck:
@@ -25,6 +29,28 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+  trainer:
+    profiles: ["train"] # Prevents it from running during normal 'docker compose up'
+    build:
+      context: .
+      target: train
+    image: derivative-trainer:latest
+    container_name: derivative-trainer
+    environment:
+      - MOTION_DATA_PATH=/data/scraped_motions.json
+      - MODEL_ARTIFACT_DIR=/artifacts
+      - PYTHONUNBUFFERED=1
+    volumes:
+      ## TODO: Correct the directories to the left of the colon depending on your setup.
+      # path to your JSON file on the left
+      - ${HOME}/bp-debate-tracker/scraped_motions.json:/data/scraped_motions.json:ro,Z
+      # path to your dv-artifacts folder on the left. This path is important for the classifier.
+      - ${HOME}/dv-artifacts:/artifacts:Z
     logging:
       driver: "json-file"
       options:
