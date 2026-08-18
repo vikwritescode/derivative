@@ -5,16 +5,14 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_PROGRESS_BAR=raw \
-    PIP_DEFAULT_TIMEOUT=120 \
-    PIP_RETRIES=3 \
     DB_PATH=/data/debates.db \
     MODEL_ARTIFACT_DIR=/artifacts
 
 COPY requirements.txt ./requirements.txt
 
-RUN python -m pip install \
-    --progress-bar=raw \
+RUN python -m pip install --upgrade pip && \
+    python -m pip install \
+    --progress-bar=on \
     --timeout 120 \
     --retries 3 \
     -r requirements.txt
