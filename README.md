@@ -20,40 +20,71 @@ Built with Python, FastAPI, Pydantic, pandas, Uvicorn, scikit-learn, and Firebas
 
 ## Planned
 - Improved motion categorisation model
-- Docker support for easier deployment
 
 ## Setup Instructions
 
+These are new setup instructions using docker. This guide will assume you already have docker and docker-compose set up to work on your machine. Instructions can be found [here](https://docs.docker.com), or you could ask a modern LLM, which should very much be able to guide you through the process.
+
+This guide assumes you are using linux (or WSL).
+
+### Firebase Configuration
+
+You will need firebase credentials as this project uses firebase for authentication.
+1. head to Firebase console
+1. create a new project, enable Authentication
+1. under project settings, go to the service accounts tab
+1. generate a new private key and rename it to `serviceAccountKey.json`. **Do not share this with anyone.**
+1. place this file in a folder 
+    ```bash
+    mkdir /some/folder/i/remember/my-dv-secrets
+    cp downloaded/path/to/serviceAccountKey.json some/folder/i/remember/my-dv-secrets/serviceAccountKey.json
+    ```
+Remember this folder's path, as you will need it in the future.
+
+### Motions JSON
+
+This repository does not contain a list of motions to train the classifier model. I will not be providing instructions for getting a list of motions. However, I will assume you have a list of motions and topics in this format in your JSON:
+```json
+{
+    "Motion": "This house supports capital controls restricting foreign currency during times of economic crises",
+    "Infoslide": "Capital controls are government policies that regulate the flow money across a country's border",
+    "Round": "Round 4",
+    "Types": [
+      "Economics",
+      "International Relations"
+    ]
+    }
+```
+Remember the path to this JSON, as it will come in useful.
+
+### Docker Compose path setup 
+
 1. Clone and enter the repository:
 ```bash
-git clone https://github.com/vikwritescode/bp-debate-tracker
-cd bp-debate-tracker
+git clone https://github.com/vikwritescode/derivative
+cd derivative
 ```
-2. Initialise a Python virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-3. Configure Firebase
-    - head to Firebase console
-    - create a new project, enable Authentication
-    - under project settings, go to the service accounts tab
-    - generate a new private key and rename it to `ServiceAccountKey.json`
-    - place it in the /src folder
-    - add the path to `ServiceAccountKey` in your `.env`:
-    ```bash
-    echo "SERVICE_ACCT_KEY='./serviceAccountKey.json'" > .env
-    ```
+1. Ensure that all of these directories/paths are ready
+    - path to your motions (in json form)
+    - path to your secrets folder
+    - path to an (empty) artifacts folder where your model will live
 
-4. Train classifier
-    - a set of motions and their associated categories are required
-    - modify the file in `ai/train_model.py` to extract this data accordingly
-    - run `train_model.py`
-    - this should generate three files in /src: `classifier.pkl`, `multilabel_binarizer.pkl`, and `transformer.pkl`
+1. Find the blocks labelled `volume` and edit the lines accordingly wherever they exist:
+    - `- ${HOME}/dv-secrets:/run/secrets:ro,Z` --> `- your/secrets/folder:/run/secrets:ro,Z`
+    - `- ${HOME}/dv-artifacts:/artifacts:Z` --> `- your/artifacts/folder:/artifacts:Z`
+    - `${HOME}/bp-debate-tracker/scraped_motions.json:/data/scraped_motions.json:ro,Z` --> `/your/path/to/motions.json:/data/scraped_motions.json:ro,Z`
 
-5. Enter /src and run `api.py` :
+### Training the model
+1. Run the training command using docker-compose:
 ```bash
-cd src
-python3 api.py
+docker compose run --rm trainer
 ```
+This should generate three files in in your artifacts folder: `classifier.pkl`, `multilabel_binarizer.pkl`, and `transformer.pkl`
+
+### Running the service
+1. Run the server
+```bash
+docker compose up -d --remove-orphans
+```
+
+At this stage, the server should be up and running at localhost:8000
