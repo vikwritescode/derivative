@@ -53,7 +53,7 @@ This repository does not contain a list of motions to train the classifier model
       "Economics",
       "International Relations"
     ]
-    }
+}
 ```
 Remember the path to this JSON, as it will come in useful.
 
@@ -69,7 +69,7 @@ cd derivative
     - path to your secrets folder
     - path to an (empty) artifacts folder where your model will live
 
-1. Find the blocks labelled `volume` and edit the lines accordingly wherever they exist:
+1. Find the blocks labelled `volume` and edit these lines accordingly wherever they exist:
     - `- ${HOME}/dv-secrets:/run/secrets:ro,Z` --> `- your/secrets/folder:/run/secrets:ro,Z`
     - `- ${HOME}/dv-artifacts:/artifacts:Z` --> `- your/artifacts/folder:/artifacts:Z`
     - `${HOME}/bp-debate-tracker/scraped_motions.json:/data/scraped_motions.json:ro,Z` --> `/your/path/to/motions.json:/data/scraped_motions.json:ro,Z`
