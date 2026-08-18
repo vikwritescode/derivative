@@ -13,7 +13,6 @@ COPY requirements.txt ./requirements.txt
 # --no-deps skips the resolver backtracking loop entirely
 RUN python -m pip install --upgrade pip && \
     python -m pip install \
-    --no-deps \
     --timeout 120 \
     --retries 3 \
     -r requirements.txt && \
