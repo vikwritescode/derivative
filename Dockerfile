@@ -10,12 +10,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY requirements.txt ./requirements.txt
 
+# --no-deps skips the resolver backtracking loop entirely
 RUN python -m pip install --upgrade pip && \
     python -m pip install \
-    --progress-bar=on \
+    --no-deps \
     --timeout 120 \
     --retries 3 \
-    -r requirements.txt
+    -r requirements.txt && \
+    python -m pip check
 
 COPY src ./src
 COPY whitelist.json ./whitelist.json
