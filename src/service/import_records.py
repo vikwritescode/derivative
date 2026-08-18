@@ -57,7 +57,7 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         if t_id is None:
             raise RuntimeError("failed to create tournament record")
         
-        print(f"{tab_data["team_rank"]} on team, {tab_data["speaker_rank"]} on speaker, {tab_data["rooms"]} rooms")
+        print(f"{tab_data['team_rank']} on team, {tab_data['speaker_rank']} on speaker, {tab_data['rooms']} rooms")
         for round in tab_data["results"]:
             
             # ignore rounds where people did not speak
@@ -88,6 +88,7 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         print("raising...")
         raise
     except Exception as e:
+        print(e)
         raise RuntimeError("error fetching participant data")
     try:
         # cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)

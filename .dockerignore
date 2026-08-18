@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.git/
+.gitignore
+.DS_Store
+.env
+scraped_motions.json
+src/serviceAccountKey.json
+*.sqlite3
+*.db
+*.pkl
