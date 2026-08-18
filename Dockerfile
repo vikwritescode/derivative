@@ -5,20 +5,30 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
+    PIP_PROGRESS_BAR=raw \
+    PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=3 \
     DB_PATH=/data/debates.db \
     MODEL_ARTIFACT_DIR=/artifacts
 
 COPY requirements.txt ./requirements.txt
-RUN pip install -r requirements.txt
+
+RUN python -m pip install \
+    --progress-bar=raw \
+    --timeout 120 \
+    --retries 3 \
+    -r requirements.txt
 
 COPY src ./src
 COPY whitelist.json ./whitelist.json
+
 
 FROM base AS train
 
 WORKDIR /app/src
 
 CMD ["python", "-m", "ai.train_model"]
+
 
 FROM base AS serve
 
