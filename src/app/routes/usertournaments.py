@@ -7,7 +7,7 @@ from models import TournamentCreate, NotFoundError
 
 router = APIRouter(prefix="/api/usertournaments", tags=["tournaments"])
 
-@router.get("/")
+@router.get("")
 def api_get_tournaments(user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
     """
     Gets all tournament records associated with a user.

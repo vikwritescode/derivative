@@ -44,7 +44,9 @@ async def lifespan(app: FastAPI):
     app.state.clf = clf
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan,
+              title="Derivative",
+              redirect_slashes=False)
 
 app.add_middleware(
     CORSMiddleware,
