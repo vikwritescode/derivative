@@ -41,7 +41,7 @@ def main():
     artifact_dir = Path(args.artifacts_dir).expanduser().resolve()
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
-    model = SentenceTransformer("all-MiniLM-L6-v2")  # ~80 MB
+    model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")  # ~80 MB
 
     with motion_data_path.open("r") as f:
         big_json = json.load(f)
@@ -64,14 +64,14 @@ def main():
 
     # 4. Train multi‑label classifier
     print("training")
-    clf = OneVsRestClassifier(LogisticRegression())
+    clf = OneVsRestClassifier(LogisticRegression(class_weight=None, max_iter=1000), n_jobs=-1)
     tqdm(clf.fit(X_train, y_train))
 
     # 5. Predict
     def classify(text):
         X = model.encode([text])
-        pred = clf.predict(X)[0]
-        categories = mlb.classes_[pred == 1].tolist()
+        pred = clf.predict_proba(X)[0]
+        categories = mlb.classes_[pred >= 0.99].tolist()
         return categories
 
     joblib.dump(model, artifact_dir / "sentence_transformer.pkl")
