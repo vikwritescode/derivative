@@ -23,9 +23,9 @@ def classify(info_slide: str, motion: str, request: Request):
     X = model.encode([text])
     
     # Predict binary labels
-    pred = clf.predict(X)[0]
+    pred = clf.predict_proba(X)[0]
     
     # Convert back to category names
-    categories = mlb.classes_[pred == 1].tolist()
+    categories = mlb.classes_[pred >= 0.3].tolist()
     
     return categories
