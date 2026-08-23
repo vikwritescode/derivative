@@ -64,7 +64,7 @@ def main():
 
     # 4. Train multi‑label classifier
     print("training")
-    clf = OneVsRestClassifier(LogisticRegression(class_weight=None, max_iter=1000), n_jobs=-1)
+    clf = OneVsRestClassifier(LogisticRegression(class_weight=None, max_iter=1000))
     tqdm(clf.fit(X_train, y_train))
 
     # 5. Predict
