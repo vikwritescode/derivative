@@ -5,6 +5,7 @@ DEFAULT_DB_PATH = os.getenv("DB_PATH", "debates.db")
 
 
 def create_tables(db_path: str = DEFAULT_DB_PATH):
+    
     db_directory = os.path.dirname(db_path)
     if db_directory:
         os.makedirs(db_directory, exist_ok=True)
@@ -120,6 +121,16 @@ def create_tables(db_path: str = DEFAULT_DB_PATH):
         tab_url TEXT,
         speaker_url TEXT,
         slug TEXT
+    );
+    """)
+    
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS notes (
+        debate_id INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
+        note TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (debate_id, user_id)
     );
     """)
     
