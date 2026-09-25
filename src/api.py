@@ -13,7 +13,7 @@ import joblib
 from contextlib import asynccontextmanager
 from pathlib import Path
 from app import get_db, create_tables, init_firebase, get_current_user
-from app.routes import usertournaments, wsdc, australs, tab, debates, category
+from app.routes import usertournaments, wsdc, australs, tab, debates, category, notes
 
 MODEL_ARTIFACT_DIR = Path(os.getenv("MODEL_ARTIFACT_DIR", ".")).resolve()
 
@@ -62,6 +62,7 @@ app.include_router(australs.router)
 app.include_router(tab.router)
 app.include_router(debates.router)
 app.include_router(category.router)
+app.include_router(notes.router)
 
 @app.get("/api")
 def root(user: dict = Depends(get_current_user)):
