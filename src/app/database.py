@@ -143,11 +143,11 @@ def create_tables(db_path: str = DEFAULT_DB_PATH):
         position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'AFF', 'NEG', 'ABS')),
         sp_order INTEGER NOT NULL CHECK("sp_order" >= 0 AND "sp_order" <= 3) DEFAULT 0,
         round_name TEXT NOT NULL,
+        round_short_name TEXT NOT NULL,
         advancing BIT NOT NULL,
         infoslide TEXT NOT NULL,
         motion TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        reply INTEGER NOT NULL DEFAULT 0,
         has_reply BIT NOT NULL DEFAULT 0);
                 """)
     
