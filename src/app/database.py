@@ -134,6 +134,93 @@ def create_tables(db_path: str = DEFAULT_DB_PATH):
     );
     """)
     
+    # create a table for outrounds if not already there
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS outrounds (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        tournament_id INTEGER REFERENCES Tournaments(tournament_id),
+        position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'AFF', 'NEG', 'ABS')),
+        sp_order INTEGER NOT NULL CHECK("sp_order" >= 0 AND "sp_order" <= 3) DEFAULT 0,
+        round_name TEXT NOT NULL,
+        advancing BIT NOT NULL,
+        infoslide TEXT NOT NULL,
+        motion TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reply INTEGER NOT NULL DEFAULT 0,
+        has_reply BIT NOT NULL DEFAULT 0);
+                """)
+    
+    # create an outrounds categories table if not already there
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS outround_categories (
+        outround_id INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
+        category TEXT NOT NULL CHECK(category IN (
+            'Africa',
+            'Animal Rights',
+            'Art',
+            'Artificial Intelligence',
+            'Asia',
+            'Australia',
+            'Charity',
+            'Children',
+            'Cities',
+            'Climate Change',
+            'Colonialism',
+            'Criminal Justice',
+            'Culture',
+            'Cybersecurity',
+            'Democracy',
+            'Development',
+            'Disability Rights',
+            'Drugs',
+            'Economics',
+            'Education/Academia',
+            'Elderly/Aging',
+            'Energy',
+            'Environment',
+            'Ethics',
+            'Europe',
+            'Feminism',
+            'Healthcare',
+            'Historical Memory',
+            'Housing',
+            'Human Rights',
+            'Immigration',
+            'Indigenous People',
+            'International Relations',
+            'Labor',
+            'Latin America',
+            'Law',
+            'LGBTQ+',
+            'Media',
+            'Medical',
+            'Mental Health',
+            'Middle East',
+            'Military',
+            'Minority Communities',
+            'Nationalism',
+            'Philosophy',
+            'Police',
+            'Policy',
+            'Politics',
+            'Privacy',
+            'Private Property',
+            'Refugees/Asylum',
+            'Religion',
+            'Romance/Sex',
+            'Romance/Sexuality',
+            'Science/Technology',
+            'Social Justice',
+            'Social Policy',
+            'Sports',
+            'Terrorism',
+            'Trade'
+        )),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
     con.commit()
     con.close()
 
