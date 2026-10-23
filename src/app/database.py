@@ -139,7 +139,7 @@ def create_tables(db_path: str = DEFAULT_DB_PATH):
     CREATE TABLE IF NOT EXISTS outrounds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
-        tournament_id INTEGER REFERENCES Tournaments(tournament_id),
+        tournament_id INTEGER NOT NULL REFERENCES Tournaments(tournament_id),
         position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'AFF', 'NEG', 'ABS')),
         sp_order INTEGER NOT NULL CHECK("sp_order" >= 0 AND "sp_order" <= 3) DEFAULT 0,
         round_name TEXT NOT NULL,

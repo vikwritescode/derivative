@@ -85,9 +85,9 @@ class OutroundCreate(BaseModel):
     advancing: bool = False  
     motion: str
     infoslide: str
-    tournament: int | None = None 
+    tournament: int
     round_name: str
     round_short_name:str
     categories: CategoryList | None = None
-    order: int = Field(default=0, ge=0, le=2)
+    order: int = Field(default=0, ge=0, le=3)
     has_reply: bool = False
