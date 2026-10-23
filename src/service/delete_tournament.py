@@ -23,7 +23,29 @@ def delete_tournament(tournament_id: str, uid: str, db: sqlite3.Connection):
         if len(recs) > 0:
             # if there are records to delete in the first place
             cur.execute("""
+                        DELETE FROM categories
+                        WHERE debate_id IN (
+                            SELECT id FROM debates
+                            WHERE user_id = ? AND tournament_id = ?
+                        );
+                        """,
+                        (uid, tournament_id))
+            cur.execute("""
+                        DELETE FROM outround_categories
+                        WHERE outround_id IN (
+                            SELECT id FROM outrounds
+                            WHERE user_id = ? AND tournament_id = ?
+                        );
+                        """,
+                        (uid, tournament_id))
+            cur.execute("""
                         DELETE FROM debates
+                        WHERE user_id = ? 
+                        AND tournament_id = ? ;
+                        """,
+                        (uid, tournament_id))
+            cur.execute("""
+                        DELETE FROM outrounds
                         WHERE user_id = ? 
                         AND tournament_id = ? ;
                         """,

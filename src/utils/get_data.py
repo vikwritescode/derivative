@@ -86,6 +86,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         
         
         results = dict()
+        outround_results = dict()
         # get our specific entry in round_stands
         team_round_wise = next(team for team in round_stands if team["team"] == team_url)
     
@@ -117,37 +118,36 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     
     # processing for each round
     for round in team_round_wise["rounds"]:
-        if round["score"] is None:
-            # ignore outrounds
-            continue 
         result = dict()
         result["round"] = round["round"]
-        result["points"] = round["points"]
         result["info_slide"] = ""
         result["motion"] = "blank..?"
-        result["speaks"] = 0 # default, if not replaced by round
         result["order"] = 0 # default, if didn't speak
         result["spoke"] = False
-        
         # getting data from round URL (already fetched tho)
-        round_data = rounds_jsons[round["round"]]
-        print("(2) gotten round data")
-        
+        round_data = rounds_jsons[round["round"]]        
         round_motion_set = round_data["motions"]
         if len(round_motion_set) > 0:
             result["info_slide"] = round_motion_set[0]["info_slide_plain"]
             result["motion"] = round_motion_set[0]["text"]
-        
-        
         # get positions from motion draw
         pairings_data = pairings_jsons.get(round_data["_links"]["pairing"])
-        print("(3) gotten pairing data")
         for room in pairings_data:
             for team in room["teams"]:
                 if team["team"] == team_url:
                     result["position"] = team["side"]
-        
-        results[round["round"]] = result
+        if round["score"] is None:
+            # outrounds
+            result["advancing"] = round["win"]
+            result["round_name"] = round_data["name"]
+            result["round_short_name"] = round_data["abbreviation"]
+            outround_results[round["round"]] = result
+        else: 
+            # inrounds
+            result["points"] = round["points"]
+            result["speaks"] = 0 # default, if not replaced by round
+            
+            results[round["round"]] = result
     
     # get speaks and append to our results
     print("(4) gotten speaks data")
@@ -171,6 +171,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         "team_rank": team_rank,
         "rooms": rooms,
         "results": list(results.values()),
+        "outrounds": list(outround_results.values()),
         "partner": partner_name
     }
         
