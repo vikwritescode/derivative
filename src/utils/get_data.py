@@ -122,7 +122,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         result["round"] = round["round"]
         result["info_slide"] = ""
         result["motion"] = "blank..?"
-        result["order"] = 0 # default, if didn't speak
+        result["order"] = 0
         result["spoke"] = False
         # getting data from round URL (already fetched tho)
         round_data = rounds_jsons[round["round"]]        
@@ -138,6 +138,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
                     result["position"] = team["side"]
         if round["score"] is None:
             # outrounds
+            result["spoke"] = True
             result["advancing"] = round["win"]
             result["round_name"] = round_data["name"]
             result["round_short_name"] = round_data["abbreviation"]
@@ -164,7 +165,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
             results[round["round"]]["speaks"] = speaker_score
             results[round["round"]]["order"] = speaker_ord
             results[round["round"]]["spoke"] = True
-    
+    print(list(outround_results.values()))
     return {
         "name": tourney_name,
         "speaker_rank": speaker_rank,
