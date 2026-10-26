@@ -86,6 +86,28 @@ def import_wsdc_records(uid: str, tab_url: str, slug: str, speaker_url: str, dat
                 raise RuntimeError("did not insert record")
             tuples = [(p_key, uid, c) for c in cats]
             cur.executemany("INSERT INTO categories (debate_id, user_id, category) VALUES (?, ?, ?)", tuples)
+        for outround in tab_data.get("outrounds", []):
+            rcd = (uid,
+                   t_id,
+                   outround["position"].upper(),
+                   outround["order"],
+                   outround["round_name"],
+                   outround["round_short_name"],
+                   outround["advancing"],
+                   outround["info_slide"],
+                   outround["motion"],
+                   False)
+            try:
+                cats = classify(outround["info_slide"], outround["motion"], request)
+            except Exception as e:
+                print("whoops", str(e))
+                cats = []
+            cur.execute("INSERT INTO outrounds (user_id, tournament_id, position, sp_order, round_name, round_short_name, advancing, infoslide, motion, has_reply) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rcd)
+            p_key = cur.lastrowid
+            if p_key is None:
+                raise RuntimeError("did not insert record")
+            tuples = [(p_key, uid, c) for c in cats]
+            cur.executemany("INSERT INTO outround_categories (outround_id, user_id, category) VALUES (?, ?, ?)", tuples)
     except (TabAuthError, TabBrokenError) as e:
         print("raising...")
         raise

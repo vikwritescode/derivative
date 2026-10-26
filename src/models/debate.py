@@ -69,7 +69,7 @@ class CategoryList(BaseModel):
 
 class DebateCreate(BaseModel):
     date: str
-    position: Literal['OG', 'OO', 'CG', 'CO']
+    position: Literal['OG', 'OO', 'CG', 'CO', 'AFF', 'NEG']
     points: int = Field(ge=0, le=3)
     speaks: int = Field(ge=0, le=100)
     reply: int = Field(default=0, ge=0, le=50)
@@ -78,4 +78,16 @@ class DebateCreate(BaseModel):
     tournament: int | None = None 
     categories: CategoryList | None = None
     order: int = Field(default=0, ge=0, le=2)
+    has_reply: bool = False
+    
+class OutroundCreate(BaseModel):
+    position: Literal['OG', 'OO', 'CG', 'CO', 'AFF', 'NEG']
+    advancing: bool = False  
+    motion: str
+    infoslide: str
+    tournament: int
+    round_name: str
+    round_short_name:str
+    categories: CategoryList | None = None
+    order: int = Field(default=0, ge=0, le=3)
     has_reply: bool = False

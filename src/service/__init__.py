@@ -4,6 +4,7 @@ from .get_tournaments import get_tournaments
 from .get_speaker import get_speaker
 from .import_records import import_records
 from .delete_record import delete_record
+from .delete_outround import delete_outround
 from .get_user_tournaments import get_user_tournaments
 from .create_user_tournament import create_user_tournament
 from .get_start_date import get_start_date
@@ -14,6 +15,10 @@ from .refresh_tournament import refresh_tournament
 from .get_cats_for_debate import get_cats_for_debate
 from .set_cats_for_debate import set_cats_for_debate
 from .get_debate import get_debate
+from .get_outround import get_outround
+from .get_all_outrounds import get_all_outrounds
+from .insert_outround import insert_outround
+from .edit_outround import edit_outround
 from .edit_debate import edit_debate
 from .get_notes_for_debate import get_notes_for_debate
 from .write_notes_for_debate import write_notes_for_debate
