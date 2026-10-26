@@ -15,7 +15,7 @@ def get_all_outrounds(uid: str, db_conn: sqlite3.Connection) -> list:
     try:
         cur = db_conn.cursor()
         cur.execute("""
-                SELECT o.id, o.user_id, o.position, o.advancing, o.round_name, o.round_short_name,
+                SELECT o.id, o.user_id, t.date, o.position, o.advancing, o.round_name, o.round_short_name,
                 o.infoslide, o.motion, json_group_array(c.category) AS categories, 
                 t.name AS tournament_name, o.tournament_id,
                 t.partner AS partner, t.format AS format, o.has_reply, o.sp_order
@@ -31,19 +31,20 @@ def get_all_outrounds(uid: str, db_conn: sqlite3.Connection) -> list:
         r = [
             {"id": i[0],
              "uid": i[1],
-             "position": i[2],
-             "advancing": i[3],
-             "round_name": i[4],
-             "round_short_name": i[5],
-             "infoslide": i[6],
-             "motion": i[7],
-             "categories": [c for c in json.loads(i[8]) if c is not None],
-             "tournament": i[9],
-             "tournament_id": i[10],
-             "partner": i[11],
-             "format": i[12],
-             "has_reply": bool(i[13]),
-             "order": i[14]
+             "date": i[2],
+             "position": i[3],
+             "advancing": bool(i[4]),
+             "round_name": i[5],
+             "round_short_name": i[6],
+             "infoslide": i[7],
+             "motion": i[8],
+             "categories": [c for c in json.loads(i[9]) if c is not None],
+             "tournament": i[10],
+             "tournament_id": i[11],
+             "partner": i[12],
+             "format": i[13],
+             "has_reply": bool(i[14]),
+             "order": i[15]
         } for i in x]
         return r
     except sqlite3.Error as e:
