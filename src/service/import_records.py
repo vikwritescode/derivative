@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime
 from models import TabAuthError, TabBrokenError
 
+
 def validate_date_format(date_string: str):
     """Validate YYYY-MM-DD format only"""
     try:
@@ -12,11 +13,20 @@ def validate_date_format(date_string: str):
         return date_string
     except ValueError:
         raise ValueError("Invalid Date Format!")
-        
-def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: str, con: sqlite3.Connection, request: Request):
+
+
+def import_records(
+    uid: str,
+    tab_url: str,
+    slug: str,
+    speaker_url: str,
+    date: str,
+    con: sqlite3.Connection,
+    request: Request,
+):
     """
     creates debate records based on a speaker at a tournament
-    
+
     :param uid: user UID
     :type uid: str
     :param tab_url: tab URL
@@ -37,53 +47,98 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     try:
         tab_data = get_data(correct_url(tab_url), slug, speaker_url)
         cur = con.cursor()
-        
+
         # create and write the tournament
-        tourn_tuple = (date,
-                       uid,
-                       tab_data["name"],
-                       tab_data["speaker_rank"],
-                       tab_data["team_rank"],
-                       tab_data["rooms"],
-                       correct_url(tab_url),
-                       slug,
-                       speaker_url,
-                       tab_data["partner"],)
-        cur.execute("""INSERT INTO tournaments (
+        tourn_tuple = (
+            date,
+            uid,
+            tab_data["name"],
+            tab_data["speaker_rank"],
+            tab_data["team_rank"],
+            tab_data["rooms"],
+            correct_url(tab_url),
+            slug,
+            speaker_url,
+            tab_data["partner"],
+        )
+        cur.execute(
+            """INSERT INTO tournaments (
             date, user_id, name, speaker_standing,
             team_standing, rooms, tab_url, slug, speaker_url, partner) VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", tourn_tuple)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            tourn_tuple,
+        )
         t_id = cur.lastrowid
         if t_id is None:
             raise RuntimeError("failed to create tournament record")
-        
-        print(f"{tab_data['team_rank']} on team, {tab_data['speaker_rank']} on speaker, {tab_data['rooms']} rooms")
+
+        print(
+            f"{tab_data['team_rank']} on team, {tab_data['speaker_rank']} on speaker, {tab_data['rooms']} rooms"
+        )
         for round in tab_data["results"]:
-            
             # ignore rounds where people did not speak
             if not round["spoke"]:
                 continue
-            
             # make tuple for putting in db
-            rcd = (uid, 
-                            date,
-                            round["position"].upper(),
-                            round["points"],
-                            round["speaks"],
-                            round["info_slide"],
-                            round["motion"],
-                            round["order"],
-                            t_id)
+            rcd = (
+                uid,
+                date,
+                round["position"].upper(),
+                round["points"],
+                round["speaks"],
+                round["info_slide"],
+                round["motion"],
+                round["order"],
+                t_id,
+            )
             try:
                 cats = classify(round["info_slide"], round["motion"], request)
             except Exception as e:
                 print("whoops", str(e))
-            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, sp_order, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", rcd)
+                cats = []
+            cur.execute(
+                "INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, sp_order, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                rcd,
+            )
             p_key = cur.lastrowid
             if p_key is None:
                 raise RuntimeError("did not insert record")
             tuples = [(p_key, uid, c) for c in cats]
-            cur.executemany("INSERT INTO categories (debate_id, user_id, category) VALUES (?, ?, ?)", tuples)
+            cur.executemany(
+                "INSERT INTO categories (debate_id, user_id, category) VALUES (?, ?, ?)",
+                tuples,
+            )
+        for outround in tab_data.get("outrounds", []):
+            # make tuple for putting in db
+            rcd = (
+                uid,
+                t_id,
+                outround["position"].upper(),
+                outround["order"],
+                outround["round_name"],
+                outround["round_short_name"],
+                outround["advancing"],
+                outround["info_slide"],
+                outround["motion"],
+                False,
+            )
+            try:
+                cats = classify(outround["info_slide"], outround["motion"], request)
+            except Exception as e:
+                print("whoops", str(e))
+                cats = []
+            cur.execute(
+                "INSERT INTO outrounds (user_id, tournament_id, position, sp_order, round_name, round_short_name, advancing, infoslide, motion, has_reply) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                rcd,
+            )
+            p_key = cur.lastrowid
+            if p_key is None:
+                raise RuntimeError("did not insert record")
+            tuples = [(p_key, uid, c) for c in cats]
+            cur.executemany(
+                "INSERT INTO outround_categories (outround_id, user_id, category) VALUES (?, ?, ?)",
+                tuples,
+            )
     except (TabAuthError, TabBrokenError) as e:
         print("raising...")
         raise
