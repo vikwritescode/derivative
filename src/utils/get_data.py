@@ -4,10 +4,11 @@ import aiohttp
 import utils
 from models import TabAuthError, TabBrokenError
 
+
 def get_data(tab_url: str, slug: str, speaker_url: str):
     """
     Make API requests, getting the data for a speaker at a tournament
-    
+
     :param tab_url: the tab URL
     :type tab_url: str
     :param slug: the tournament slug
@@ -15,16 +16,16 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     :param speaker_url: the speaker URL
     :type speaker_url: str
     """
-    
+
     async def fetch(session, url):
         async with session.get(url) as resp:
             resp.raise_for_status()
             return await resp.json()
-    
+
     async def get_pairings(urls):
         """
         Get pairings simultaneously
-        
+
         :param urls: list of URL pairings
         """
         async with aiohttp.ClientSession() as session:
@@ -32,35 +33,41 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
             results = await asyncio.gather(*tasks.values())
             data_map = dict(zip(tasks.keys(), results))
             return data_map
-    
+
     async def get_standings(tab_url, slug):
         """
         Get both speaker and team standings simultaneously
-        
+
         :param tab_url: the tab URL
         :param slug: tournament slug
         """
         async with aiohttp.ClientSession() as session:
             tasks = [
-                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds"),
-                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds"),
+                fetch(
+                    session,
+                    f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds",
+                ),
+                fetch(
+                    session,
+                    f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds",
+                ),
                 fetch(session, f"{tab_url}/api/v1/tournaments/{slug}"),
                 fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings"),
-                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings"),
+                fetch(
+                    session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings"
+                ),
                 fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams"),
-                     ]
+            ]
             results = await asyncio.gather(*tasks)
             return results
-    
 
-    
     try:
         s_r = requests.get(speaker_url)
         s_r.raise_for_status()
-        
+
         s = s_r.json()
         team_url = s["team"]
-        
+
         # get our data concurrently for everything except pairings
         stand = asyncio.run(get_standings(tab_url, slug))
         speak_standings = stand[0]
@@ -69,53 +76,85 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         team_standings = stand[3]
         actual_speak_standings = stand[4]
         teams = stand[5]
-        
+
         # get team and speaker rank
-        team_rank = next((x["rank"]
-                          for x in team_standings
-                          if x["team"] is not None
-                          and (utils.standardise_to_https(x["team"]) == utils.standardise_to_https(team_url))), 0)
-        speaker_rank = next((x["rank"]
-                          for x in actual_speak_standings
-                          if x["speaker"] is not None
-                          and (utils.standardise_to_https(x["speaker"]) == utils.standardise_to_https(speaker_url))), 0)
-        
+        team_rank = next(
+            (
+                x["rank"]
+                for x in team_standings
+                if x["team"] is not None
+                and (
+                    utils.standardise_to_https(x["team"])
+                    == utils.standardise_to_https(team_url)
+                )
+            ),
+            0,
+        )
+        speaker_rank = next(
+            (
+                x["rank"]
+                for x in actual_speak_standings
+                if x["speaker"] is not None
+                and (
+                    utils.standardise_to_https(x["speaker"])
+                    == utils.standardise_to_https(speaker_url)
+                )
+            ),
+            0,
+        )
+
         # get team object to find partner
-        team_obj = next((t for t in teams if utils.standardise_to_https(t["url"]) == utils.standardise_to_https(team_url)), None)
-        partner_name = next(utils.correct_name(s["name"]) for s in team_obj["speakers"] if utils.standardise_to_https(s["url"]) != utils.standardise_to_https(speaker_url))
-        
-        
+        team_obj = next(
+            (
+                t
+                for t in teams
+                if utils.standardise_to_https(t["url"])
+                == utils.standardise_to_https(team_url)
+            ),
+            None,
+        )
+        partner_name = next(
+            utils.correct_name(s["name"])
+            for s in team_obj["speakers"]
+            if utils.standardise_to_https(s["url"])
+            != utils.standardise_to_https(speaker_url)
+        )
+
         results = dict()
         outround_results = dict()
         # get our specific entry in round_stands
-        team_round_wise = next(team for team in round_stands if team["team"] == team_url)
-    
+        team_round_wise = next(
+            team for team in round_stands if team["team"] == team_url
+        )
+
         # fetch all rounds concurrently
         rounds_urls = [r["round"] for r in team_round_wise["rounds"]]
         rounds_jsons = asyncio.run(get_pairings(rounds_urls))
-        
+
         # fetch all pairings concurrently
         pairings_urls = [r["_links"]["pairing"] for r in rounds_jsons.values()]
         pairings_jsons = asyncio.run(get_pairings(pairings_urls))
-        
+
         # save number of rooms
         if len(pairings_jsons.values()) > 0:
             rooms = len(max(pairings_jsons.values(), key=len))
         else:
             rooms = 0
-            
+
     except (requests.exceptions.HTTPError, aiohttp.ClientResponseError) as e:
         # status location differs with async and sync
-        status = getattr(e, 'status', None) or (e.response.status_code if hasattr(e, 'response') else None)
-        
+        status = getattr(e, "status", None) or (
+            e.response.status_code if hasattr(e, "response") else None
+        )
+
         if status == 401:
             raise TabAuthError
         else:
             raise TabBrokenError
-    
+
     except Exception as e:
-        print(f"whoops: {str(e)}")   
-    
+        print(f"whoops: {str(e)}")
+
     # processing for each round
     for round in team_round_wise["rounds"]:
         result = dict()
@@ -125,7 +164,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         result["order"] = 0
         result["spoke"] = False
         # getting data from round URL (already fetched tho)
-        round_data = rounds_jsons[round["round"]]        
+        round_data = rounds_jsons[round["round"]]
         round_motion_set = round_data["motions"]
         if len(round_motion_set) > 0:
             result["info_slide"] = round_motion_set[0]["info_slide_plain"]
@@ -137,26 +176,64 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
                 if team["team"] == team_url:
                     result["position"] = team["side"]
         if round["score"] is None:
+            print("outround: ", round)
+            if "win" not in round:
+                outround_pairings = pairings_jsons.get(
+                    round_data["_links"]["pairing"], []
+                )
+                ballot_url = next(
+                    (
+                        room.get("_links", {}).get("ballots")
+                        for room in outround_pairings
+                        if any(
+                            team.get("team") == team_url
+                            for team in room.get("teams", [])
+                        )
+                    ),
+                    None,
+                )
+                try:
+                    ballot_data = requests.get(ballot_url).json()
+
+                except Exception as e:
+                    print(f"Error fetching ballot data: {str(e)}")
+                    raise
+                result["advancing"] = next(
+                    (
+                        team.get("win")
+                        for team in ballot_data[0]["result"]["sheets"][0]["teams"]
+                        if team.get("team") == team_url
+                    ),
+                    False,
+                )
+            else:
+                result["advancing"] = round["win"]
             # outrounds
             result["spoke"] = True
-            result["advancing"] = round["win"]
             result["round_name"] = round_data["name"]
             result["round_short_name"] = round_data["abbreviation"]
             outround_results[round["round"]] = result
-        else: 
+        else:
             # inrounds
             result["points"] = round["points"]
-            result["speaks"] = 0 # default, if not replaced by round
-            
+            result["speaks"] = 0  # default, if not replaced by round
+
             results[round["round"]] = result
-    
+
     # get speaks and append to our results
     print("(4) gotten speaks data")
     # get our speaker
-    relevant = next((speaker["rounds"] for speaker in speak_standings if speaker["speaker"] == speaker_url), [])
+    relevant = next(
+        (
+            speaker["rounds"]
+            for speaker in speak_standings
+            if speaker["speaker"] == speaker_url
+        ),
+        [],
+    )
     for round in relevant:
         speeches = round["speeches"]
-        
+
         if len(speeches) > 0:
             print(speeches)
             speaker_speech = max(speeches, key=lambda x: x["score"])
@@ -173,7 +250,5 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         "rooms": rooms,
         "results": list(results.values()),
         "outrounds": list(outround_results.values()),
-        "partner": partner_name
+        "partner": partner_name,
     }
-        
-           
